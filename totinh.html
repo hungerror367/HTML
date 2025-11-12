@@ -30,7 +30,6 @@
             50% { background-position: 100% 50%; }
         }
 
-        /* Custom Cursor - ULTRA OPTIMIZED */
         .custom-cursor {
             position: fixed;
             width: 25px;
@@ -56,7 +55,7 @@
         .custom-cursor::before { left: -12.5px; }
         .custom-cursor::after { top: -12.5px; }
 
-        /* Mouse Trail Hearts */
+       
         .mouse-heart {
             position: fixed;
             width: 18px;
@@ -94,7 +93,7 @@
             }
         }
 
-        /* Sparkle Effects */
+      
         .sparkle {
             position: fixed;
             width: 6px;
@@ -122,7 +121,7 @@
             }
         }
 
-        /* Animated Stars Background */
+     
         .stars-container {
             position: fixed;
             width: 100%;
@@ -145,7 +144,6 @@
             50% { opacity: 1; transform: scale(1.5); }
         }
 
-        /* Floating Hearts */
         .hearts-container {
             position: fixed;
             width: 100%;
@@ -192,7 +190,7 @@
             }
         }
 
-        /* Particle System */
+        
         .particles {
             position: fixed;
             width: 100%;
@@ -223,7 +221,6 @@
             }
         }
 
-        /* Main Container */
         .container {
             position: relative;
             z-index: 1;
@@ -237,7 +234,7 @@
             justify-content: center;
         }
 
-        /* Intro Screen */
+        
         .intro-screen {
             text-align: center;
             animation: fadeIn 1.5s ease-in;
@@ -267,7 +264,7 @@
             }
         }
 
-        /* Date Input Section */
+        
         .date-input-section {
             margin-top: 40px;
             animation: fadeInUp 1s ease-out 0.5s both;
@@ -392,7 +389,6 @@
             box-shadow: 0 20px 60px rgba(255,107,157,0.8);
         }
 
-        /* Main Content */
         .main-content {
             display: none;
             width: 100%;
@@ -522,7 +518,6 @@
             to { opacity: 1; }
         }
 
-        /* Photo Gallery */
         .photo-gallery {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -571,7 +566,7 @@
             75% { transform: rotate(-5deg) scale(1.05); }
         }
 
-        /* Reasons List */
+       
         .reasons-list {
             list-style: none;
             margin: 30px 0;
@@ -644,7 +639,7 @@
         .reason-item:nth-child(4) { animation-delay: 0.4s; }
         .reason-item:nth-child(5) { animation-delay: 0.5s; }
 
-        /* Question Section */
+      
         .question-section {
             text-align: center;
             margin: 40px 0;
@@ -773,7 +768,6 @@
             75% { transform: translateX(10px) rotate(5deg); }
         }
 
-        /* Celebration Modal */
         .celebration-modal {
             display: none;
             position: fixed;
@@ -833,7 +827,7 @@
             text-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
-        /* Fireworks */
+       
         .firework {
             position: fixed;
             width: 5px;
@@ -855,7 +849,7 @@
             }
         }
 
-        /* Confetti */
+   
         .confetti {
             position: fixed;
             width: 8px;
@@ -880,7 +874,7 @@
             to { opacity: 1; }
         }
 
-        /* Responsive */
+ 
         @media (max-width: 768px) {
             .intro-screen h1 {
                 font-size: 2.2em;
@@ -911,14 +905,14 @@
     </style>
 </head>
 <body>
-    <!-- Animated Background Elements -->
+   
     <div class="custom-cursor" id="customCursor"></div>
     <div class="stars-container" id="stars"></div>
     <div class="hearts-container" id="hearts"></div>
     <div class="particles" id="particles"></div>
 
     <div class="container">
-        <!-- Intro Screen -->
+  
         <div class="intro-screen" id="intro">
             <h1>✨ Dành Cho Người Đặc Biệt ✨</h1>
             <div class="date-input-section">
@@ -933,9 +927,7 @@
             </div>
         </div>
 
-        <!-- Main Content -->
         <div class="main-content" id="mainContent">
-            <!-- Card 1: Lời Mở Đầu -->
             <div class="card">
                 <h2>💌 Gửi Linh Người H ... 💌</h2>
                 <p class="love-text">
@@ -945,7 +937,6 @@
                 </p>
             </div>
 
-            <!-- Card 2: Photo Gallery -->
             <div class="card">
                 <h2>📸 Những Khoảnh Khắc Đẹp 📸</h2>
                 <div class="photo-gallery">
@@ -967,7 +958,7 @@
                 </p>
             </div>
 
-            <!-- Card 3: Reasons Why -->
+         
             <div class="card">
                 <h2>💖 Lý Do H Thích Linh 💖</h2>
                 <ul class="reasons-list">
@@ -979,7 +970,6 @@
                 </ul>
             </div>
 
-            <!-- Card 4: The Question -->
             <div class="card">
                 <h2>💍 Câu Hỏi Quan Trọng 💍</h2>
                 <p class="love-text">
@@ -1003,7 +993,7 @@
         </div>
     </div>
 
-    <!-- Celebration Modal -->
+  
     <div class="celebration-modal" id="celebrationModal">
         <div class="celebration-content">
             <h2>🎉 YAYYY! 🎉</h2>
@@ -1018,23 +1008,21 @@
     </div>
 
     <script>
-        // CORRECT DATE - CHANGE THIS!
-        const CORRECT_DATE = "01/01/2024"; // Format: DD/MM/YYYY
+        // Ngay gap nhau
+        const CORRECT_DATE = "01/01/2025"; // Format: DD/MM/YYYY
 
-        // ==================== CURSOR OPTIMIZATION ====================
         const cursor = document.getElementById('customCursor');
         let mouseX = 0;
         let mouseY = 0;
         let cursorX = 0;
         let cursorY = 0;
 
-        // Track mouse position
+      
         document.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
             mouseY = e.clientY;
         });
 
-        // Smooth cursor animation with requestAnimationFrame (120fps capable)
         function updateCursor() {
             const dx = mouseX - cursorX;
             const dy = mouseY - cursorY;
@@ -1050,7 +1038,7 @@
         
         updateCursor();
 
-        // ==================== DATE INPUT ====================
+      
         const dateInput = document.getElementById('dateInput');
         
         dateInput.addEventListener('input', function(e) {
@@ -1085,7 +1073,7 @@
             }
         }
 
-        // ==================== MOUSE TRAIL HEARTS ====================
+        
         let lastHeartTime = 0;
         const HEART_DELAY = 100;
         
@@ -1107,7 +1095,7 @@
             setTimeout(() => heart.remove(), 1800);
         }
 
-        // ==================== SPARKLE ON CLICK ====================
+       
         document.addEventListener('click', (e) => {
             for (let i = 0; i < 5; i++) {
                 setTimeout(() => createSparkle(e.clientX, e.clientY), i * 40);
@@ -1124,7 +1112,7 @@
             setTimeout(() => sparkle.remove(), 800);
         }
 
-        // ==================== BACKGROUND ELEMENTS ====================
+        
         function createStars() {
             const container = document.getElementById('stars');
             for (let i = 0; i < 50; i++) {
@@ -1165,12 +1153,12 @@
             }
         }
 
-        // ==================== START JOURNEY ====================
+      
         function startJourney() {
             document.getElementById('intro').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
             
-            // Add more floating hearts
+          
             const container = document.getElementById('hearts');
             for (let i = 0; i < 15; i++) {
                 setTimeout(() => {
@@ -1186,7 +1174,7 @@
             }
         }
 
-        // ==================== BUTTON INTERACTIONS ====================
+   
         function sayYes() {
             const modal = document.getElementById('celebrationModal');
             modal.style.display = 'flex';
@@ -1219,7 +1207,7 @@
             }
         }
 
-        // ==================== CELEBRATION EFFECTS ====================
+        
         function createFireworks() {
             const colors = ['#ff6b9d', '#feca57', '#48dbfb', '#1dd1a1', '#ff6348', '#a29bfe', '#fd79a8', '#fff'];
             
@@ -1259,7 +1247,6 @@
             }
         }
 
-        // ==================== INITIALIZE ====================
         window.addEventListener('load', () => {
             createStars();
             createHearts();
