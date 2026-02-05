@@ -1,0 +1,2219 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Card By HungNguyen | Dev</title>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;900&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6B35;
+            --secondary: #F7931E;
+            --accent: #FDC500;
+            --success: #00D9A5;
+            --danger: #FF5757;
+            --info: #6C63FF;
+            --dark: #1A1A2E;
+            --darker: #0F0F1E;
+            --light: #FFFBF5;
+            --card-bg: #FFFFFF;
+            --gradient-primary: linear-gradient(135deg, #FF6B35 0%, #F7931E 50%, #FDC500 100%);
+            --gradient-success: linear-gradient(135deg, #00D9A5 0%, #00B4D8 100%);
+            --gradient-danger: linear-gradient(135deg, #FF5757 0%, #FF006E 100%);
+            --gradient-info: linear-gradient(135deg, #6C63FF 0%, #4CC9F0 100%);
+            --gradient-dark: linear-gradient(135deg, #1A1A2E 0%, #2D2D44 100%);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.2);
+            --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.25);
+            --shadow-glow: 0 0 40px rgba(255, 107, 53, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #000814;
+            color: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 3D Space Background */
+        #space-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+
+        /* Nebula background */
+        .nebula {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 20% 30%, rgba(255, 107, 53, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(108, 99, 255, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(253, 197, 0, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 30% 80%, rgba(0, 217, 165, 0.1) 0%, transparent 50%);
+            animation: nebulaFloat 40s ease-in-out infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes nebulaFloat {
+            0%, 100% { 
+                transform: translate(0, 0) scale(1);
+                filter: blur(60px);
+            }
+            33% { 
+                transform: translate(40px, -30px) scale(1.1);
+                filter: blur(70px);
+            }
+            66% { 
+                transform: translate(-30px, 40px) scale(0.95);
+                filter: blur(80px);
+            }
+        }
+
+        /* Falling stars container */
+        #stars-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Static stars background */
+        .star-field {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20% 30%, white, transparent),
+                radial-gradient(2px 2px at 60% 70%, white, transparent),
+                radial-gradient(1px 1px at 50% 50%, white, transparent),
+                radial-gradient(1px 1px at 80% 10%, white, transparent),
+                radial-gradient(2px 2px at 90% 60%, white, transparent),
+                radial-gradient(1px 1px at 33% 80%, white, transparent),
+                radial-gradient(1px 1px at 70% 35%, white, transparent);
+            background-size: 200% 200%, 200% 200%, 300% 300%, 250% 250%, 180% 180%, 220% 220%, 280% 280%;
+            background-position: 0 0, 40px 60px, 130px 270px, 70px 100px, 150px 50px, 200px 180px, 90px 220px;
+            opacity: 0.5;
+            animation: starsTwinkle 4s ease-in-out infinite;
+        }
+
+        @keyframes starsTwinkle {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        /* Individual falling star */
+        .falling-star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 
+                0 0 6px 2px rgba(255, 255, 255, 0.9),
+                0 0 12px 4px rgba(255, 255, 255, 0.6),
+                0 0 18px 6px rgba(255, 255, 255, 0.3);
+            opacity: 0;
+            animation: fallingStar linear infinite;
+            will-change: transform, opacity;
+        }
+
+        /* Shooting star trail */
+        .falling-star::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 1px;
+            background: linear-gradient(to right, rgba(255, 255, 255, 0.8), transparent);
+            transform-origin: right center;
+        }
+
+        @keyframes fallingStar {
+            0% {
+                transform: translateX(0) translateY(0) translateZ(0);
+                opacity: 0;
+            }
+            5% {
+                opacity: 1;
+            }
+            95% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateX(var(--fall-x, -300px)) translateY(var(--fall-y, 400px)) translateZ(var(--fall-z, -200px));
+                opacity: 0;
+            }
+        }
+
+        /* Animated gradient background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 107, 53, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(253, 197, 0, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(247, 147, 30, 0.05) 0%, transparent 50%);
+            animation: float 25s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes float {
+            0%, 100% { 
+                transform: translate(0, 0) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+            25% { 
+                transform: translate(30px, -30px) rotate(3deg) scale(1.05);
+                opacity: 0.9;
+            }
+            50% { 
+                transform: translate(-20px, 20px) rotate(-3deg) scale(0.95);
+                opacity: 1;
+            }
+            75% { 
+                transform: translate(40px, 10px) rotate(2deg) scale(1.02);
+                opacity: 0.95;
+            }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'Unbounded', cursive;
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            font-weight: 900;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            filter: drop-shadow(0 4px 12px rgba(255, 107, 53, 0.3));
+            position: relative;
+        }
+
+        h1::after {
+            content: attr(data-text);
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: -1;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: blur(20px);
+            opacity: 0.5;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: rgba(255, 251, 245, 0.7);
+            font-weight: 300;
+        }
+
+        /* Deck selector */
+        .deck-section {
+            margin-bottom: 2rem;
+            animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .deck-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .deck-header h2 {
+            font-family: 'Unbounded', cursive;
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+
+        .deck-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .deck-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .deck-card {
+            background: rgba(255, 251, 245, 0.03);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            border-radius: 20px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px) saturate(180%);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: deckCardFadeIn 0.5s cubic-bezier(0, 0, 0.2, 1) forwards;
+        }
+
+        .deck-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-primary);
+            transform: scaleX(0);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: left;
+        }
+
+        .deck-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 107, 53, 0.1) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .deck-card:hover::after {
+            opacity: 1;
+        }
+
+        .deck-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-6px);
+            box-shadow: 0 16px 48px rgba(255, 107, 53, 0.25);
+            background: rgba(255, 251, 245, 0.08);
+        }
+
+        .deck-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .deck-card.active {
+            border-color: var(--primary);
+            background: rgba(255, 107, 53, 0.1);
+            box-shadow: 0 8px 32px rgba(255, 107, 53, 0.3);
+        }
+
+        .deck-card.active::before {
+            transform: scaleX(1);
+            height: 4px;
+            background: var(--gradient-primary);
+            animation: gradientShift 3s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes deckCardFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .deck-name {
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--light);
+            transition: all 0.3s ease;
+        }
+
+        .deck-card:hover .deck-name {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% 200%;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        .deck-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: rgba(255, 251, 245, 0.6);
+            margin-bottom: 0.75rem;
+        }
+
+        .deck-description {
+            font-size: 0.85rem;
+            color: rgba(255, 251, 245, 0.5);
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+
+        .deck-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            font-size: 0.8rem;
+            padding: 0.5rem;
+            min-width: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            white-space: nowrap;
+        }
+
+        .btn-small .btn-icon {
+            font-size: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-small .btn-text {
+            max-width: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-block;
+        }
+
+        .btn-small:hover {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+
+        .btn-small:hover .btn-text {
+            max-width: 100px;
+            opacity: 1;
+            margin-left: 0.2rem;
+        }
+
+        .btn-small:hover .btn-icon {
+            transform: scale(1.1);
+        }
+
+        .btn-edit {
+            background: rgba(253, 197, 0, 0.2);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .btn-edit:hover {
+            background: var(--accent);
+            color: var(--darker);
+        }
+
+        .btn-delete {
+            background: rgba(255, 107, 53, 0.2);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-delete:hover {
+            background: var(--primary);
+            color: var(--darker);
+        }
+
+        /* Stats bar */
+        .stats {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            animation: fadeIn 0.8s ease-out 0.4s both;
+        }
+
+        .stat-item {
+            background: rgba(255, 251, 245, 0.03);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            border-radius: 20px;
+            padding: 1.25rem 1.75rem;
+            min-width: 140px;
+            backdrop-filter: blur(20px) saturate(180%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-item:hover::before {
+            opacity: 1;
+        }
+
+        .stat-item::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 107, 53, 0.1) 0%, transparent 70%);
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s ease;
+            pointer-events: none;
+        }
+
+        .stat-item:hover::after {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: rgba(255, 251, 245, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-item.updated .stat-value {
+            animation: statBounce 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes statBounce {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Card container */
+        .card-container {
+            perspective: 1500px;
+            margin-bottom: 2rem;
+            animation: scaleIn 0.8s ease-out 0.6s both;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .flashcard {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            margin: 0 auto;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            touch-action: pan-y;
+            user-select: none;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard.swiping {
+            transition: none;
+        }
+
+        .flashcard.swipe-left {
+            animation: swipeLeftOut 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+
+        .flashcard.swipe-right {
+            animation: swipeRightOut 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+
+        .flashcard.slide-in-left {
+            animation: slideInFromLeft 0.4s cubic-bezier(0, 0, 0.2, 1) forwards;
+        }
+
+        .flashcard.slide-in-right {
+            animation: slideInFromRight 0.4s cubic-bezier(0, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes swipeLeftOut {
+            0% {
+                transform: translateX(0) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(-120%) rotate(-12deg) scale(0.8);
+                opacity: 0;
+            }
+        }
+
+        @keyframes swipeRightOut {
+            0% {
+                transform: translateX(0) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(120%) rotate(12deg) scale(0.8);
+                opacity: 0;
+            }
+        }
+
+        @keyframes slideInFromLeft {
+            0% {
+                transform: translateX(-120%) rotate(-12deg) scale(0.8);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(0) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInFromRight {
+            0% {
+                transform: translateX(120%) rotate(12deg) scale(0.8);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(0) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .flashcard.fade-out {
+            animation: fadeOutScale 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+
+        .flashcard.fade-in {
+            animation: fadeInScale 0.4s cubic-bezier(0, 0, 0.2, 1) forwards;
+        }
+
+        .flashcard.bounce-out {
+            animation: bounceOut 0.4s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+
+        .flashcard.zoom-in {
+            animation: zoomIn 0.5s cubic-bezier(0, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes fadeOutScale {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0.85);
+                opacity: 0;
+            }
+        }
+
+        @keyframes fadeInScale {
+            0% {
+                transform: scale(0.85);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes bounceOut {
+            0% {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05) translateY(-20px);
+            }
+            100% {
+                transform: scale(0.8) translateY(40px);
+                opacity: 0;
+            }
+        }
+
+        @keyframes zoomIn {
+            0% {
+                transform: scale(0.3) rotate(0deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05) rotate(5deg);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #FFFFFF 0%, #FFF8F0 100%);
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+        }
+
+        .card-front::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: var(--gradient-primary);
+            border-radius: 24px;
+            z-index: -1;
+            opacity: 0.8;
+        }
+
+        .card-back {
+            background: var(--gradient-primary);
+            background-size: 200% 200%;
+            animation: gradientShift 5s ease infinite;
+            transform: rotateY(180deg);
+            box-shadow: 0 30px 80px rgba(255, 107, 53, 0.4);
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 8px 16px rgba(255, 107, 53, 0.3));
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .word {
+            font-family: 'Unbounded', cursive;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .pronunciation {
+            font-size: 1.2rem;
+            color: var(--primary);
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        .meaning {
+            font-size: 1.8rem;
+            color: var(--light);
+            text-align: center;
+            line-height: 1.4;
+            font-weight: 400;
+        }
+
+        .example {
+            font-size: 1rem;
+            color: rgba(255, 251, 245, 0.8);
+            text-align: center;
+            margin-top: 1rem;
+            font-style: italic;
+        }
+
+        .flip-hint {
+            position: absolute;
+            bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: rgba(26, 26, 46, 0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .card-back .flip-hint {
+            color: rgba(255, 251, 245, 0.6);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.8s ease-out 0.8s both;
+        }
+
+        button {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+            min-width: 60px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button .btn-icon {
+            position: relative;
+            z-index: 1;
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        button .btn-text {
+            position: relative;
+            z-index: 1;
+            max-width: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-block;
+        }
+
+        button:hover {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+
+        button:hover .btn-text {
+            max-width: 200px;
+            opacity: 1;
+            margin-left: 0.3rem;
+        }
+
+        button:hover .btn-icon {
+            transform: scale(1.1);
+        }
+
+        /* Full width buttons always show text */
+        button[style*="width: 100%"] .btn-text {
+            max-width: 200px;
+            opacity: 1;
+            margin-left: 0.3rem;
+        }
+
+        button[style*="width: 100%"] {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            background-size: 200% 200%;
+            color: var(--darker);
+            box-shadow: var(--shadow-md), var(--shadow-glow);
+            animation: gradientShift 3s ease infinite;
+            font-weight: 700;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg), 0 0 60px rgba(255, 107, 53, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 251, 245, 0.05);
+            color: var(--light);
+            border: 2px solid rgba(255, 107, 53, 0.4);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-secondary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-secondary:hover::before {
+            left: 100%;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 107, 53, 0.15);
+            border-color: var(--primary);
+            box-shadow: 0 8px 24px rgba(255, 107, 53, 0.2);
+        }
+
+        .btn-success {
+            background: var(--gradient-success);
+            background-size: 200% 200%;
+            color: var(--darker);
+            box-shadow: var(--shadow-md), 0 8px 24px rgba(0, 217, 165, 0.3);
+            animation: gradientShift 3s ease infinite;
+            font-weight: 700;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg), 0 0 40px rgba(0, 217, 165, 0.5);
+        }
+
+        .btn-danger {
+            background: rgba(255, 87, 87, 0.15);
+            color: var(--danger);
+            border: 2px solid var(--danger);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-danger:hover {
+            background: var(--gradient-danger);
+            background-size: 200% 200%;
+            color: var(--darker);
+            animation: gradientShift 3s ease infinite;
+            box-shadow: 0 8px 24px rgba(255, 87, 87, 0.4);
+        }
+
+        /* Progress bar */
+        .progress-container {
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            animation: fadeIn 0.8s ease-out 1s both;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: rgba(255, 251, 245, 0.7);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 14px;
+            background: rgba(255, 251, 245, 0.05);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-primary);
+            background-size: 200% 200%;
+            border-radius: 20px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            animation: gradientShift 3s ease infinite;
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        .progress-fill::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            opacity: 0;
+            animation: progressPulse 0.6s ease-out;
+        }
+
+        @keyframes progressPulse {
+            0% {
+                opacity: 0;
+                transform: translateX(-100%);
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(0px);
+            transition: background 0.3s ease, backdrop-filter 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(45, 45, 68, 0.95) 100%);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 32px;
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.8) translateY(-30px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0, 0, 0.2, 1);
+            backdrop-filter: blur(40px) saturate(180%);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4), 0 0 60px rgba(255, 107, 53, 0.2);
+            position: relative;
+            overflow: visible;
+        }
+
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-primary);
+            border-radius: 32px 32px 0 0;
+            animation: gradientShift 3s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            font-family: 'Unbounded', cursive;
+            font-size: 1.5rem;
+            color: var(--accent);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--light);
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: var(--primary);
+            transform: rotate(90deg);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: rgba(255, 251, 245, 0.8);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            border-radius: 16px;
+            color: var(--light);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1), 0 8px 24px rgba(255, 107, 53, 0.15);
+            transform: translateY(-2px);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: rgba(255, 251, 245, 0.4);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .flashcard {
+                height: 350px;
+            }
+            
+            .word {
+                font-size: 2.2rem;
+            }
+            
+            .meaning {
+                font-size: 1.4rem;
+            }
+            
+            .controls {
+                gap: 0.5rem;
+            }
+            
+            button {
+                padding: 0.875rem 1.5rem;
+                font-size: 0.9rem;
+            }
+
+            .deck-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Performance optimizations */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 3D Space Background -->
+    <div id="space-container">
+        <div class="nebula"></div>
+        <div class="star-field"></div>
+        <div id="stars-container"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>VocabFlip Pro 3D</h1>
+            <p class="subtitle">Quản lý nhiều bộ flashcard thông minh</p>
+        </header>
+
+        <!-- Deck Selection -->
+        <div class="deck-section">
+            <div class="deck-header">
+                <h2>📚 Bộ Thẻ Của Bạn</h2>
+                <div class="deck-controls">
+                    <button class="btn-primary" onclick="openNewDeckModal()">
+                        <span class="btn-icon">➕</span>
+                        <span class="btn-text">Tạo bộ mới</span>
+                    </button>
+                </div>
+            </div>
+            <div class="deck-grid" id="deckGrid">
+                <!-- Decks will be rendered here -->
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">Tổng từ</div>
+                <div class="stat-value" id="totalWords">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Đã học</div>
+                <div class="stat-value" id="learned">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Còn lại</div>
+                <div class="stat-value" id="remaining">0</div>
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-container">
+            <div class="progress-label">
+                <span>Tiến độ học tập</span>
+                <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Flashcard -->
+        <div class="card-container">
+            <div class="flashcard" id="flashcard">
+                <div class="card-face card-front">
+                    <div class="card-icon">🎯</div>
+                    <div class="word" id="wordFront">Chọn bộ thẻ</div>
+                    <div class="pronunciation" id="pronunciation"></div>
+                    <div class="flip-hint">👆 Nhấn để xem nghĩa • 👈 Lướt để chuyển thẻ</div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="card-icon">✨</div>
+                    <div class="meaning" id="wordBack"></div>
+                    <div class="example" id="example"></div>
+                    <div class="flip-hint">👆 Nhấn để quay lại • 👈 Lướt để chuyển thẻ</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn-danger" onclick="markAsNotKnown()">
+                <span class="btn-icon">❌</span>
+                <span class="btn-text">Chưa biết</span>
+            </button>
+            <button class="btn-secondary" onclick="flipCard()">
+                <span class="btn-icon">🔄</span>
+                <span class="btn-text">Lật thẻ</span>
+            </button>
+            <button class="btn-success" onclick="markAsKnown()">
+                <span class="btn-icon">✅</span>
+                <span class="btn-text">Đã biết</span>
+            </button>
+        </div>
+
+        <div class="controls">
+            <button class="btn-secondary" onclick="handleSwipeRight()">
+                <span class="btn-icon">◀️</span>
+                <span class="btn-text">Thẻ trước</span>
+            </button>
+            <button class="btn-primary" onclick="handleSwipeLeft()">
+                <span class="btn-icon">▶️</span>
+                <span class="btn-text">Thẻ tiếp theo</span>
+            </button>
+            <button class="btn-secondary" onclick="shuffle()">
+                <span class="btn-icon">🎲</span>
+                <span class="btn-text">Xáo trộn</span>
+            </button>
+            <button class="btn-secondary" onclick="openAddWordModal()">
+                <span class="btn-icon">➕</span>
+                <span class="btn-text">Thêm từ</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- New Deck Modal -->
+    <div class="modal" id="newDeckModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Tạo bộ thẻ mới</h2>
+                <button class="close-btn" onclick="closeModal('newDeckModal')">×</button>
+            </div>
+            <div class="form-group">
+                <label for="deckName">Tên bộ thẻ</label>
+                <input type="text" id="deckName" placeholder="Ví dụ: TOEIC Cơ bản">
+            </div>
+            <div class="form-group">
+                <label for="deckDescription">Mô tả</label>
+                <textarea id="deckDescription" placeholder="Mô tả ngắn về bộ thẻ này..."></textarea>
+            </div>
+            <button class="btn-primary" onclick="createDeck()" style="width: 100%; margin-top: 1rem;">
+                <span class="btn-icon">✅</span>
+                <span class="btn-text">Tạo bộ thẻ</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Add Word Modal -->
+    <div class="modal" id="addWordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Thêm từ mới</h2>
+                <button class="close-btn" onclick="closeModal('addWordModal')">×</button>
+            </div>
+            <div class="form-group">
+                <label for="newWord">Từ vựng</label>
+                <input type="text" id="newWord" placeholder="Nhập từ tiếng Anh...">
+            </div>
+            <div class="form-group">
+                <label for="newPronunciation">Phiên âm</label>
+                <input type="text" id="newPronunciation" placeholder="Ví dụ: /həˈloʊ/">
+            </div>
+            <div class="form-group">
+                <label for="newMeaning">Nghĩa tiếng Việt</label>
+                <input type="text" id="newMeaning" placeholder="Nhập nghĩa...">
+            </div>
+            <div class="form-group">
+                <label for="newExample">Ví dụ (không bắt buộc)</label>
+                <textarea id="newExample" placeholder="Nhập câu ví dụ..."></textarea>
+            </div>
+            <button class="btn-primary" onclick="addWord()" style="width: 100%; margin-top: 1rem;">
+                <span class="btn-icon">➕</span>
+                <span class="btn-text">Thêm từ</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ============ FALLING STARS SYSTEM ============
+        class FallingStarsManager {
+            constructor() {
+                this.container = document.getElementById('stars-container');
+                this.stars = [];
+                this.maxStars = 15; // Limit số sao đồng thời
+                this.spawnInterval = 2000; // Spawn mỗi 2 giây
+                this.isRunning = false;
+            }
+
+            init() {
+                this.isRunning = true;
+                this.spawnLoop();
+            }
+
+            spawnLoop() {
+                if (!this.isRunning) return;
+
+                // Spawn sao mới
+                if (this.stars.length < this.maxStars) {
+                    this.createStar();
+                }
+
+                // Random interval để tạo hiệu ứng tự nhiên
+                const nextSpawn = this.spawnInterval + (Math.random() * 2000 - 1000);
+                setTimeout(() => this.spawnLoop(), nextSpawn);
+            }
+
+            createStar() {
+                const star = document.createElement('div');
+                star.className = 'falling-star';
+
+                // Random vị trí bắt đầu
+                const startX = Math.random() * 100;
+                const startY = -10;
+
+                // Random các giá trị di chuyển
+                const fallX = -(200 + Math.random() * 400); // -200 đến -600px
+                const fallY = 400 + Math.random() * 400;    // 400 đến 800px
+                const fallZ = -(100 + Math.random() * 300); // Độ sâu 3D
+
+                // Random thời gian rơi (3-6 giây)
+                const duration = 3 + Math.random() * 3;
+
+                // Random độ trễ
+                const delay = Math.random() * 0.5;
+
+                // Random kích thước
+                const size = 1.5 + Math.random() * 1.5;
+
+                // Áp dụng styles
+                star.style.left = `${startX}%`;
+                star.style.top = `${startY}%`;
+                star.style.setProperty('--fall-x', `${fallX}px`);
+                star.style.setProperty('--fall-y', `${fallY}px`);
+                star.style.setProperty('--fall-z', `${fallZ}px`);
+                star.style.animationDuration = `${duration}s`;
+                star.style.animationDelay = `${delay}s`;
+                star.style.transform = `scale(${size})`;
+
+                // Thêm vào DOM
+                this.container.appendChild(star);
+                this.stars.push(star);
+
+                // Tự động xóa sau khi animation kết thúc
+                setTimeout(() => {
+                    this.removeStar(star);
+                }, (duration + delay) * 1000);
+            }
+
+            removeStar(star) {
+                const index = this.stars.indexOf(star);
+                if (index > -1) {
+                    this.stars.splice(index, 1);
+                }
+                if (star.parentNode) {
+                    star.parentNode.removeChild(star);
+                }
+            }
+
+            destroy() {
+                this.isRunning = false;
+                this.stars.forEach(star => {
+                    if (star.parentNode) {
+                        star.parentNode.removeChild(star);
+                    }
+                });
+                this.stars = [];
+            }
+        }
+
+        // Initialize falling stars
+        let starsManager;
+        window.addEventListener('load', () => {
+            starsManager = new FallingStarsManager();
+            starsManager.init();
+        });
+
+        // ============ FLASHCARD APP LOGIC ============
+        // Data structure
+        let decks = [
+            {
+                id: 1,
+                name: "Từ vựng cơ bản",
+                description: "Các từ vựng tiếng Anh thông dụng hàng ngày",
+                cards: [
+                    { word: "Amazing", pronunciation: "/əˈmeɪzɪŋ/", meaning: "Tuyệt vời, Kinh ngạc", example: "That was an amazing performance!", known: false },
+                    { word: "Beautiful", pronunciation: "/ˈbjuːtɪfl/", meaning: "Đẹp, Xinh đẹp", example: "The sunset was beautiful.", known: false },
+                    { word: "Challenge", pronunciation: "/ˈtʃælɪndʒ/", meaning: "Thử thách", example: "This is a real challenge for me.", known: false }
+                ]
+            },
+            {
+                id: 2,
+                name: "TOEIC Vocabulary",
+                description: "Từ vựng thường gặp trong bài thi TOEIC",
+                cards: [
+                    { word: "Efficient", pronunciation: "/ɪˈfɪʃnt/", meaning: "Hiệu quả", example: "This is a very efficient method.", known: false },
+                    { word: "Implement", pronunciation: "/ˈɪmplɪment/", meaning: "Thực hiện, Triển khai", example: "We will implement the new policy next month.", known: false },
+                    { word: "Revenue", pronunciation: "/ˈrevənjuː/", meaning: "Doanh thu", example: "The company's revenue increased by 20%.", known: false }
+                ]
+            },
+            {
+                id: 3,
+                name: "IELTS Writing",
+                description: "Từ vựng hữu ích cho IELTS Writing Task 2",
+                cards: [
+                    { word: "Significant", pronunciation: "/sɪɡˈnɪfɪkənt/", meaning: "Quan trọng, Đáng kể", example: "There has been a significant improvement.", known: false },
+                    { word: "Consequently", pronunciation: "/ˈkɒnsɪkwəntli/", meaning: "Do đó, Hệ quả là", example: "He missed the bus; consequently, he was late.", known: false },
+                    { word: "Nevertheless", pronunciation: "/ˌnevəðəˈles/", meaning: "Tuy nhiên, Dù vậy", example: "It was raining; nevertheless, we went out.", known: false }
+                ]
+            }
+        ];
+
+        let currentDeckId = null;
+        let currentIndex = 0;
+        let isFlipped = false;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+        let isDragging = false;
+        let isAnimating = false;
+        let swipeCooldown = false;
+
+        // Load from localStorage if available
+        function loadData() {
+            const savedDecks = localStorage.getItem('vocabFlipDecks');
+            if (savedDecks) {
+                decks = JSON.parse(savedDecks);
+            }
+        }
+
+        // Save to localStorage
+        function saveData() {
+            localStorage.setItem('vocabFlipDecks', JSON.stringify(decks));
+        }
+
+        // Initialize
+        function init() {
+            loadData();
+            renderDecks();
+            if (decks.length > 0) {
+                selectDeck(decks[0].id);
+            }
+        }
+
+        // Render deck grid
+        function renderDecks() {
+            const grid = document.getElementById('deckGrid');
+            grid.innerHTML = '';
+            
+            decks.forEach((deck, index) => {
+                const learned = deck.cards.filter(c => c.known).length;
+                const total = deck.cards.length;
+                const percent = total > 0 ? Math.round((learned / total) * 100) : 0;
+                
+                const deckCard = document.createElement('div');
+                deckCard.className = `deck-card ${currentDeckId === deck.id ? 'active' : ''}`;
+                deckCard.style.animationDelay = `${index * 0.1}s`;
+                deckCard.innerHTML = `
+                    <div class="deck-name">${deck.name}</div>
+                    <div class="deck-info">
+                        <span>${total} từ</span>
+                        <span>${percent}% hoàn thành</span>
+                    </div>
+                    <div class="deck-description">${deck.description}</div>
+                    <div class="deck-actions">
+                        <button class="btn-small btn-edit" onclick="event.stopPropagation(); editDeck(${deck.id})">
+                            <span class="btn-icon">✏️</span>
+                            <span class="btn-text">Sửa</span>
+                        </button>
+                        <button class="btn-small btn-delete" onclick="event.stopPropagation(); deleteDeck(${deck.id})">
+                            <span class="btn-icon">🗑️</span>
+                            <span class="btn-text">Xóa</span>
+                        </button>
+                    </div>
+                `;
+                deckCard.onclick = () => selectDeck(deck.id);
+                grid.appendChild(deckCard);
+            });
+        }
+
+        // Select deck
+        function selectDeck(deckId) {
+            if (isAnimating) return;
+            
+            const flashcard = document.getElementById('flashcard');
+            
+            // Only animate if changing to a different deck
+            if (currentDeckId !== null && currentDeckId !== deckId) {
+                isAnimating = true;
+                flashcard.classList.add('fade-out');
+                
+                setTimeout(() => {
+                    flashcard.classList.remove('fade-out');
+                    currentDeckId = deckId;
+                    currentIndex = 0;
+                    isFlipped = false;
+                    renderDecks();
+                    updateStats();
+                    displayCard();
+                    
+                    flashcard.classList.add('fade-in');
+                    
+                    setTimeout(() => {
+                        flashcard.classList.remove('fade-in');
+                        isAnimating = false;
+                    }, 400);
+                }, 300);
+            } else {
+                currentDeckId = deckId;
+                currentIndex = 0;
+                isFlipped = false;
+                renderDecks();
+                updateStats();
+                displayCard();
+            }
+        }
+
+        // Get current deck
+        function getCurrentDeck() {
+            return decks.find(d => d.id === currentDeckId);
+        }
+
+        // Update stats
+        function updateStats() {
+            const deck = getCurrentDeck();
+            if (!deck) {
+                document.getElementById('totalWords').textContent = '0';
+                document.getElementById('learned').textContent = '0';
+                document.getElementById('remaining').textContent = '0';
+                document.getElementById('progressPercent').textContent = '0%';
+                document.getElementById('progressFill').style.width = '0%';
+                return;
+            }
+
+            const learned = deck.cards.filter(c => c.known).length;
+            const total = deck.cards.length;
+            const remaining = total - learned;
+            const percent = total > 0 ? Math.round((learned / total) * 100) : 0;
+
+            // Animate stat changes
+            const statsItems = document.querySelectorAll('.stat-item');
+            statsItems.forEach(item => item.classList.add('updated'));
+            setTimeout(() => {
+                statsItems.forEach(item => item.classList.remove('updated'));
+            }, 500);
+
+            document.getElementById('totalWords').textContent = total;
+            document.getElementById('learned').textContent = learned;
+            document.getElementById('remaining').textContent = remaining;
+            document.getElementById('progressPercent').textContent = percent + '%';
+            document.getElementById('progressFill').style.width = percent + '%';
+        }
+
+        // Display card
+        function displayCard() {
+            const deck = getCurrentDeck();
+            if (!deck || deck.cards.length === 0) {
+                document.getElementById('wordFront').textContent = "Không có từ nào";
+                document.getElementById('pronunciation').textContent = "";
+                document.getElementById('wordBack').textContent = "Hãy thêm từ mới!";
+                document.getElementById('example').textContent = "";
+                return;
+            }
+
+            const card = deck.cards[currentIndex];
+            document.getElementById('wordFront').textContent = card.word;
+            document.getElementById('pronunciation').textContent = card.pronunciation;
+            document.getElementById('wordBack').textContent = card.meaning;
+            document.getElementById('example').textContent = card.example || "";
+            
+            if (isFlipped) {
+                document.getElementById('flashcard').classList.add('flipped');
+            } else {
+                document.getElementById('flashcard').classList.remove('flipped');
+            }
+        }
+
+        // Flip card
+        function flipCard() {
+            const deck = getCurrentDeck();
+            if (!deck || deck.cards.length === 0) return;
+            
+            isFlipped = !isFlipped;
+            document.getElementById('flashcard').classList.toggle('flipped');
+        }
+
+        // Next card
+        function nextCard() {
+            const deck = getCurrentDeck();
+            if (!deck || deck.cards.length === 0) return;
+            
+            currentIndex = (currentIndex + 1) % deck.cards.length;
+            isFlipped = false;
+            displayCard();
+        }
+
+        // Previous card
+        function previousCard() {
+            const deck = getCurrentDeck();
+            if (!deck || deck.cards.length === 0) return;
+            
+            currentIndex = (currentIndex - 1 + deck.cards.length) % deck.cards.length;
+            isFlipped = false;
+            displayCard();
+        }
+
+        // Swipe handlers
+        function handleSwipeLeft() {
+            if (isAnimating || swipeCooldown) return;
+            isAnimating = true;
+            swipeCooldown = true;
+            
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.add('swipe-left');
+            
+            setTimeout(() => {
+                flashcard.classList.remove('swipe-left');
+                nextCard();
+                
+                flashcard.classList.add('slide-in-right');
+                
+                setTimeout(() => {
+                    flashcard.classList.remove('slide-in-right');
+                    isAnimating = false;
+                    
+                    setTimeout(() => {
+                        swipeCooldown = false;
+                    }, 150);
+                }, 400);
+            }, 300);
+        }
+
+        function handleSwipeRight() {
+            if (isAnimating || swipeCooldown) return;
+            isAnimating = true;
+            swipeCooldown = true;
+            
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.add('swipe-right');
+            
+            setTimeout(() => {
+                flashcard.classList.remove('swipe-right');
+                previousCard();
+                
+                flashcard.classList.add('slide-in-left');
+                
+                setTimeout(() => {
+                    flashcard.classList.remove('slide-in-left');
+                    isAnimating = false;
+                    
+                    setTimeout(() => {
+                        swipeCooldown = false;
+                    }, 150);
+                }, 400);
+            }, 300);
+        }
+
+        // Touch event handlers
+        function handleTouchStart(e) {
+            if (isAnimating || swipeCooldown) return;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            isDragging = false;
+        }
+
+        function handleTouchMove(e) {
+            if (!touchStartX || isAnimating || swipeCooldown) return;
+            
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const diffX = currentX - touchStartX;
+            const diffY = currentY - touchStartY;
+            
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 20) {
+                isDragging = true;
+                e.preventDefault();
+                
+                const flashcard = document.getElementById('flashcard');
+                flashcard.classList.add('swiping');
+                
+                const maxTranslate = 300;
+                const limitedDiffX = Math.max(-maxTranslate, Math.min(maxTranslate, diffX));
+                const rotation = limitedDiffX / 20;
+                flashcard.style.transform = `translateX(${limitedDiffX}px) rotate(${rotation}deg)`;
+                flashcard.style.opacity = 1 - Math.abs(limitedDiffX) / 600;
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!touchStartX) return;
+            
+            touchEndX = e.changedTouches[0].clientX;
+            touchEndY = e.changedTouches[0].clientY;
+            
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.remove('swiping');
+            flashcard.style.transform = '';
+            flashcard.style.opacity = '';
+            
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+            
+            const minSwipeDistance = 120;
+            
+            if (isDragging && Math.abs(diffX) > Math.abs(diffY)) {
+                if (diffX > minSwipeDistance) {
+                    handleSwipeRight();
+                } else if (diffX < -minSwipeDistance) {
+                    handleSwipeLeft();
+                } else {
+                    if (!isAnimating && !swipeCooldown) {
+                        flipCard();
+                    }
+                }
+            } else if (!isDragging) {
+                if (!isAnimating && !swipeCooldown) {
+                    flipCard();
+                }
+            }
+            
+            touchStartX = 0;
+            touchStartY = 0;
+            isDragging = false;
+        }
+
+        // Mouse event handlers for desktop
+        let mouseStartX = 0;
+        let mouseStartY = 0;
+        let isMouseDragging = false;
+
+        function handleMouseDown(e) {
+            if (isAnimating || swipeCooldown) return;
+            mouseStartX = e.clientX;
+            mouseStartY = e.clientY;
+            isMouseDragging = false;
+        }
+
+        function handleMouseMove(e) {
+            if (!mouseStartX || isAnimating || swipeCooldown) return;
+            
+            const currentX = e.clientX;
+            const diffX = currentX - mouseStartX;
+            
+            if (Math.abs(diffX) > 20) {
+                isMouseDragging = true;
+                
+                const flashcard = document.getElementById('flashcard');
+                flashcard.classList.add('swiping');
+                
+                const maxTranslate = 300;
+                const limitedDiffX = Math.max(-maxTranslate, Math.min(maxTranslate, diffX));
+                const rotation = limitedDiffX / 20;
+                flashcard.style.transform = `translateX(${limitedDiffX}px) rotate(${rotation}deg)`;
+                flashcard.style.opacity = 1 - Math.abs(limitedDiffX) / 600;
+            }
+        }
+
+        function handleMouseUp(e) {
+            if (!mouseStartX) return;
+            
+            const mouseEndX = e.clientX;
+            const diffX = mouseEndX - mouseStartX;
+            
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.remove('swiping');
+            flashcard.style.transform = '';
+            flashcard.style.opacity = '';
+            
+            const minSwipeDistance = 120;
+            
+            if (isMouseDragging && Math.abs(diffX) > minSwipeDistance) {
+                if (diffX > 0) {
+                    handleSwipeRight();
+                } else {
+                    handleSwipeLeft();
+                }
+            } else if (!isMouseDragging) {
+                if (!isAnimating && !swipeCooldown) {
+                    flipCard();
+                }
+            }
+            
+            mouseStartX = 0;
+            isMouseDragging = false;
+        }
+
+        // Setup swipe listeners
+        function setupSwipeListeners() {
+            const flashcard = document.getElementById('flashcard');
+            
+            flashcard.addEventListener('touchstart', handleTouchStart, { passive: false });
+            flashcard.addEventListener('touchmove', handleTouchMove, { passive: false });
+            flashcard.addEventListener('touchend', handleTouchEnd);
+            
+            flashcard.addEventListener('mousedown', handleMouseDown);
+            flashcard.addEventListener('mousemove', handleMouseMove);
+            flashcard.addEventListener('mouseup', handleMouseUp);
+            flashcard.addEventListener('mouseleave', () => {
+                if (mouseStartX) {
+                    flashcard.classList.remove('swiping');
+                    flashcard.style.transform = '';
+                    flashcard.style.opacity = '';
+                    mouseStartX = 0;
+                    isMouseDragging = false;
+                }
+            });
+        }
+
+        // Mark as known
+        function markAsKnown() {
+            const deck = getCurrentDeck();
+            if (!deck || deck.cards.length === 0 || isAnimating || swipeCooldown) return;
+            
+            isAnimating = true;
+            swipeCooldown = true;
+            
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.add('swipe-right');
+            
+            setTimeout(() => {
+                flashcard.classList.remove('swipe-right');
+                deck.cards[currentIndex].known = true;
+                saveData();
+                renderDecks();
+                updateStats();
+                nextCard();
+                
+                flashcard.classList.add('slide-in-right');
+                
+                setTimeout(() => {
+                    flashcard.classList.remove('slide-in-right');
+                    isAnimating = false;
+                    
+                    setTimeout(() => {
+                        swipeCooldown = false;
+                    }, 150);
+                }, 400);
+            }, 300);
+        }
+
+        // Mark as not known
+        function markAsNotKnown() {
+            const deck = getCurrentDeck();
+            if (!deck || deck.cards.length === 0 || isAnimating || swipeCooldown) return;
+            
+            isAnimating = true;
+            swipeCooldown = true;
+            
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.add('swipe-left');
+            
+            setTimeout(() => {
+                flashcard.classList.remove('swipe-left');
+                deck.cards[currentIndex].known = false;
+                saveData();
+                renderDecks();
+                updateStats();
+                nextCard();
+                
+                flashcard.classList.add('slide-in-right');
+                
+                setTimeout(() => {
+                    flashcard.classList.remove('slide-in-right');
+                    isAnimating = false;
+                    
+                    setTimeout(() => {
+                        swipeCooldown = false;
+                    }, 150);
+                }, 400);
+            }, 300);
+        }
+
+        // Shuffle
+        function shuffle() {
+            const deck = getCurrentDeck();
+            if (!deck || deck.cards.length === 0 || isAnimating || swipeCooldown) return;
+            
+            isAnimating = true;
+            swipeCooldown = true;
+            
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.add('bounce-out');
+            
+            setTimeout(() => {
+                flashcard.classList.remove('bounce-out');
+                
+                for (let i = deck.cards.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [deck.cards[i], deck.cards[j]] = [deck.cards[j], deck.cards[i]];
+                }
+                currentIndex = 0;
+                isFlipped = false;
+                saveData();
+                displayCard();
+                
+                flashcard.classList.add('zoom-in');
+                
+                setTimeout(() => {
+                    flashcard.classList.remove('zoom-in');
+                    isAnimating = false;
+                    
+                    setTimeout(() => {
+                        swipeCooldown = false;
+                    }, 150);
+                }, 500);
+            }, 400);
+        }
+
+        // Modal functions
+        function openNewDeckModal() {
+            document.getElementById('newDeckModal').classList.add('active');
+        }
+
+        function openAddWordModal() {
+            if (!currentDeckId) {
+                alert('Vui lòng chọn một bộ thẻ trước!');
+                return;
+            }
+            document.getElementById('addWordModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Create new deck
+        function createDeck() {
+            const name = document.getElementById('deckName').value.trim();
+            const description = document.getElementById('deckDescription').value.trim();
+
+            if (!name) {
+                alert('Vui lòng nhập tên bộ thẻ!');
+                return;
+            }
+
+            const newDeck = {
+                id: Date.now(),
+                name: name,
+                description: description || 'Không có mô tả',
+                cards: []
+            };
+
+            decks.push(newDeck);
+            saveData();
+            renderDecks();
+            selectDeck(newDeck.id);
+
+            document.getElementById('deckName').value = '';
+            document.getElementById('deckDescription').value = '';
+            closeModal('newDeckModal');
+        }
+
+        // Add word
+        function addWord() {
+            if (!currentDeckId) {
+                alert('Vui lòng chọn một bộ thẻ trước!');
+                return;
+            }
+
+            const word = document.getElementById('newWord').value.trim();
+            const pronunciation = document.getElementById('newPronunciation').value.trim();
+            const meaning = document.getElementById('newMeaning').value.trim();
+            const example = document.getElementById('newExample').value.trim();
+
+            if (!word || !meaning) {
+                alert('Vui lòng nhập ít nhất từ vựng và nghĩa!');
+                return;
+            }
+
+            const deck = getCurrentDeck();
+            deck.cards.push({
+                word: word,
+                pronunciation: pronunciation || '',
+                meaning: meaning,
+                example: example || '',
+                known: false
+            });
+
+            saveData();
+            renderDecks();
+            updateStats();
+            
+            currentIndex = deck.cards.length - 1;
+            isFlipped = false;
+            displayCard();
+
+            document.getElementById('newWord').value = '';
+            document.getElementById('newPronunciation').value = '';
+            document.getElementById('newMeaning').value = '';
+            document.getElementById('newExample').value = '';
+            closeModal('addWordModal');
+        }
+
+        // Edit deck
+        function editDeck(deckId) {
+            const deck = decks.find(d => d.id === deckId);
+            if (!deck) return;
+
+            const newName = prompt('Tên bộ thẻ mới:', deck.name);
+            if (newName && newName.trim()) {
+                deck.name = newName.trim();
+                const newDesc = prompt('Mô tả mới:', deck.description);
+                if (newDesc !== null) {
+                    deck.description = newDesc.trim() || 'Không có mô tả';
+                }
+                saveData();
+                renderDecks();
+            }
+        }
+
+        // Delete deck
+        function deleteDeck(deckId) {
+            if (!confirm('Bạn có chắc muốn xóa bộ thẻ này?')) return;
+
+            decks = decks.filter(d => d.id !== deckId);
+            saveData();
+            renderDecks();
+
+            if (currentDeckId === deckId) {
+                if (decks.length > 0) {
+                    selectDeck(decks[0].id);
+                } else {
+                    currentDeckId = null;
+                    updateStats();
+                    displayCard();
+                }
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                flipCard();
+            } else if (e.code === 'ArrowRight' || e.code === 'ArrowLeft') {
+                e.preventDefault();
+                if (e.code === 'ArrowRight') {
+                    handleSwipeLeft();
+                } else {
+                    handleSwipeRight();
+                }
+            } else if (e.code === 'ArrowUp') {
+                markAsKnown();
+            } else if (e.code === 'ArrowDown') {
+                markAsNotKnown();
+            }
+        });
+
+        // Close modal on background click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        // Initialize app
+        init();
+        setupSwipeListeners();
+    </script>
+</body>
+</html>
