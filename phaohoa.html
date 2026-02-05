@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pháo Hoa Nghệ Thuật 2026 - Siêu Mượt</title>
+    <style>
+        body {
+            margin: 0;
+            background: #020202; /* Đen gần tuyệt đối để làm nổi màu */
+            overflow: hidden;
+            cursor: pointer;
+        }
+        canvas { display: block; }
+        .tutorial {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.3);
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            pointer-events: none;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="tutorial">Chạm để thưởng thức • Tận hưởng khoảnh khắc</div>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        // --- CẤU HÌNH "CHILL" & ĐẸP ---
+        const C = {
+            friction: 0.96,    // Độ cản gió (càng cao càng bay xa, càng thấp càng lơ lửng)
+            gravity: 0.04,     // Trọng lực cực nhẹ (để pháo rơi chậm như tuyết)
+            decay: 0.008,      // Tốc độ tàn (càng nhỏ càng lâu tắt) -> Chỉnh nhỏ để ngắm lâu hơn
+            fireworkSpeed: 10, // Tốc độ bay lên (chậm lại)
+            launchInterval: 500, // Tự bắn nhanh hơn (ms)
+            maxParticles: 2000 // Tăng số lượng hạt tối đa
+        };
+
+        let fireworks = [];
+        let particles = [];
+        let hueGlobal = 120; // Biến màu toàn cục xoay vòng
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Hàm tiện ích Random
+        const random = (min, max) => Math.random() * (max - min) + min;
+
+        // ==========================================================
+        // CLASS 1: Quả Pháo Bay Lên (Rocket)
+        // ==========================================================
+        class Firework {
+            constructor(sx, sy, tx, ty) {
+                this.x = sx;
+                this.y = sy;
+                this.sx = sx;
+                this.sy = sy;
+                this.tx = tx;
+                this.ty = ty;
+                this.distanceToTarget = Math.hypot(tx - sx, ty - sy);
+                this.distanceTraveled = 0;
+                this.coordinates = [];
+                this.coordinateCount = 4;
+                while (this.coordinateCount--) {
+                    this.coordinates.push([this.x, this.y]);
+                }
+                this.angle = Math.atan2(ty - sy, tx - sx);
+                this.speed = 2; // Bay lên từ từ thôi
+                this.acceleration = 1.03; // Tăng tốc nhẹ
+                this.brightness = random(60, 80);
+                this.hue = hueGlobal + random(-20, 20); // Màu ngẫu nhiên theo tone hiện tại
+            }
+
+            update(index) {
+                this.coordinates.pop();
+                this.coordinates.unshift([this.x, this.y]);
+                
+                // Tăng tốc độ bay
+                if (this.speed < C.fireworkSpeed) {
+                    this.speed *= this.acceleration;
+                }
+                
+                const vx = Math.cos(this.angle) * this.speed;
+                const vy = Math.sin(this.angle) * this.speed;
+                
+                this.distanceTraveled = Math.hypot(this.sx - (this.x + vx), this.sy - (this.y + vy));
+
+                // Nếu đến đích (hoặc bay quá đích chút xíu)
+                if (this.distanceTraveled >= this.distanceToTarget) {
+                    // Tạo vụ nổ
+                    createExplosion(this.tx, this.ty, this.hue);
+                    fireworks.splice(index, 1);
+                } else {
+                    this.x += vx;
+                    this.y += vy;
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+                ctx.lineTo(this.x, this.y);
+                ctx.strokeStyle = `hsl(${this.hue}, 100%, ${this.brightness}%)`;
+                ctx.lineWidth = 2; // Nét vẽ thân pháo
+                ctx.stroke();
+            }
+        }
+
+        // ==========================================================
+        // CLASS 2: Hạt Pháo Nổ (Spark)
+        // ==========================================================
+        class Particle {
+            constructor(x, y, hue, speedMult = 1, friction = C.friction) {
+                this.x = x;
+                this.y = y;
+                this.hue = hue;
+                this.brightness = random(50, 90); // Độ sáng lấp lánh
+                this.alpha = 1;
+                this.decay = random(C.decay, C.decay * 2); // Tàn ngẫu nhiên
+                
+                // Vật lý hạt
+                const angle = random(0, Math.PI * 2);
+                const speed = random(1, 8) * speedMult; // Tốc độ nổ tản ra
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.friction = friction;
+                this.gravity = C.gravity; 
+
+                this.coordinates = [];
+                this.coordinateCount = 6; // Đuôi dài hơn chút
+                while (this.coordinateCount--) {
+                    this.coordinates.push([this.x, this.y]);
+                }
+                // Hiệu ứng nhấp nháy
+                this.flicker = random(0, 100) > 50; 
+            }
+
+            update(index) {
+                this.coordinates.pop();
+                this.coordinates.unshift([this.x, this.y]);
+                
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+                this.vy += this.gravity;
+                
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= this.decay;
+                
+                // Đổi màu nhẹ khi rơi (hiệu ứng cầu vồng)
+                this.hue += 0.5;
+
+                // Xóa hạt khi tắt hẳn
+                if (this.alpha <= this.decay) {
+                    particles.splice(index, 1);
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+                ctx.lineTo(this.x, this.y);
+                
+                // Tính toán màu sắc: Nếu flicker = true thì chớp tắt
+                let a = this.alpha;
+                if (this.flicker) a = this.alpha * random(0.5, 1);
+
+                ctx.strokeStyle = `hsla(${this.hue}, 100%, ${this.brightness}%, ${a})`;
+                ctx.lineWidth = random(1, 2.5); // Độ dày nét ngẫu nhiên
+                
+                // Hiệu ứng "Lighter" làm tâm sáng rực
+                ctx.stroke();
+            }
+        }
+
+        // ==========================================================
+        // BỘ NÃO ĐIỀU KHIỂN CÁC KIỂU NỔ (Hàm quan trọng nhất)
+        // ==========================================================
+        function createExplosion(x, y, hue) {
+            // Giới hạn số hạt để không lag
+            if (particles.length > C.maxParticles) return;
+
+            // Random kiểu nổ (0 đến 7)
+            const type = Math.floor(random(0, 8));
+
+            switch (type) {
+                case 0: // NỔ TRÁI TIM (Heart Shape) - Đẹp lãng mạn
+                    const heartParticles = 200;
+                    for (let i = 0; i < heartParticles; i++) {
+                        const t = (Math.PI * 2 * i) / heartParticles;
+                        // Công thức hình trái tim
+                        const xx = 16 * Math.pow(Math.sin(t), 3);
+                        const yy = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+                        
+                        const p = new Particle(x, y, hue);
+                        p.vx = xx * 0.3; // Điều chỉnh kích thước tim
+                        p.vy = yy * 0.3;
+                        p.friction = 0.96;
+                        p.decay = 0.006; // Tim tồn tại lâu
+                        particles.push(p);
+                    }
+                    break;
+
+                case 1: // NỔ KÉP (Double Ring) - Sang trọng
+                    // Vòng ngoài
+                    for (let i = 0; i < 50; i++) {
+                        const p = new Particle(x, y, hue, 1.2);
+                        particles.push(p);
+                    }
+                    // Vòng trong (màu đối nghịch)
+                    setTimeout(() => {
+                        for (let i = 0; i < 30; i++) {
+                            const p = new Particle(x, y, hue + 180, 0.6);
+                            p.decay = 0.04; // Tắt nhanh hơn
+                            particles.push(p);
+                        }
+                    }, 100);
+                    break;
+
+                case 2: // MƯA SAO BĂNG (Willow) - Rơi chậm, đuôi dài
+                    for (let i = 0; i < 60; i++) {
+                        const p = new Particle(x, y, hue, 0.8, 0.92); // Ma sát cao
+                        p.gravity = 0.06; // Rơi nhanh hơn chút
+                        p.decay = 0.005; // Cực lâu tắt
+                        p.brightness = 60; // Màu vàng liễu rủ
+                        particles.push(p);
+                    }
+                    break;
+
+                case 3: // HOA CÚC (Chrysanthemum) - Nổ tròn đều
+                default:
+                    const count = 100;
+                    for (let i = 0; i < count; i++) {
+                        particles.push(new Particle(x, y, hue, 1.1));
+                    }
+                    break;
+                
+                case 4: // LOẠN SẮC (Confetti) - Nhiều màu lung tung
+                    for (let i = 0; i < 80; i++) {
+                        const p = new Particle(x, y, random(0, 360));
+                        p.speed = random(2, 9);
+                        particles.push(p);
+                    }
+                    break;
+
+                case 5: // SAO 5 CÁNH
+                    const points = 5;
+                    const stars = 80;
+                    for (let i = 0; i < stars; i++) {
+                        const p = new Particle(x, y, hue);
+                        const angle = p.vx / p.speed // Hack để lấy góc
+                        // Tính toán hình học sao
+                        const angleStep = Math.PI * 2 / points;
+                        const starAngle = Math.atan2(p.vy, p.vx);
+                        const r = Math.cos(points * Math.acos(Math.cos(starAngle))); // Giả lập shape
+                        // Đơn giản hóa: Phóng theo hướng ngẫu nhiên nhưng chỉnh vận tốc
+                        p.vx *= (Math.random() > 0.5 ? 1.5 : 0.5); 
+                        p.vy *= (Math.random() > 0.5 ? 1.5 : 0.5);
+                        particles.push(p);
+                    }
+                    break;
+            }
+        }
+
+        // ==========================================================
+        // LOOP CHÍNH
+        // ==========================================================
+        let timer = 0;
+        let limiterTotal = 0;
+
+        function loop() {
+            requestAnimationFrame(loop);
+
+            // Xoay vòng bảng màu theo thời gian
+            hueGlobal += 0.5;
+
+            // Tạo hiệu ứng đuôi mờ (Motion Blur)
+            // Thay đổi 0.15 thành số nhỏ hơn (0.1) nếu muốn đuôi dài hơn
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.12)'; 
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.globalCompositeOperation = 'lighter'; // TRỌNG TÂM: Làm màu rực sáng khi chồng lên nhau
+
+            // Xử lý Pháo đang bay
+            let i = fireworks.length;
+            while (i--) {
+                fireworks[i].draw();
+                fireworks[i].update(i);
+            }
+
+            // Xử lý Hạt nổ
+            let j = particles.length;
+            while (j--) {
+                particles[j].draw();
+                particles[j].update(j);
+            }
+
+            // Tự động bắn (Auto Launcher)
+            if (timer >= C.launchInterval) {
+                // Đôi khi bắn 1 chùm 3 quả
+                const isCombo = random(0, 10) > 8; 
+                if (isCombo) {
+                    // Bắn chùm
+                    for(let k=0; k<3; k++) {
+                        setTimeout(() => launchFirework(), k * 150);
+                    }
+                } else {
+                    // Bắn đơn
+                    launchFirework();
+                }
+                
+                // Random lại thời gian bắn tiếp theo cho tự nhiên (nhanh/chậm thất thường)
+                timer = 0;
+                C.launchInterval = random(1800, 1800);
+            } else {
+                timer += 300; // Giả lập tầm 60fps ~ 16ms
+            }
+        }
+
+        function launchFirework() {
+            const sx = width / 2 + random(-100, 100); // Vị trí bắn ở giữa dưới
+            const sy = height;
+            // Đích đến: Giới hạn trong khung hình an toàn
+            const tx = random(width * 0.1, width * 0.9); 
+            const ty = random(height * 0.1, height * 0.45); // Nổ ở phần trên cao
+            fireworks.push(new Firework(sx, sy, tx, ty));
+        }
+
+        // Click để bắn
+        canvas.addEventListener('mousedown', (e) => {
+            const sx = width / 2;
+            const sy = height;
+            fireworks.push(new Firework(sx, sy, e.clientX, e.clientY));
+            
+            //Click tạo luôn hiệu ứng nổ nhỏ tại chỗ chuột cho vui
+            createExplosion(e.clientX, e.clientY, hueGlobal);
+        });
+
+        loop();
+    </script>
+</body>
+</html>
